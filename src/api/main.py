@@ -7,8 +7,18 @@ from src.preprocessing.data_pipeline import DataPreprocessor
 from src.extraction.feature_extractor import FeatureExtractor
 from src.classification.lstm_model import PhishingLSTM
 import tensorflow as tf
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Phishing Email Detection API")
+
+# Add CORS Middleware to allow frontend to communicate with API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods (GET, POST, OPTIONS, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
 
 # Load models and transformers
 try:
