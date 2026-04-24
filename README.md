@@ -11,6 +11,13 @@ This project leverages Natural Language Processing (NLP) to distinguish between 
 - **Classification Engine**: Combines traditional ML baselines with Bi-LSTM deep learning models.
 - **Deployment**: Served via FastAPI for real-time inference.
 
+## Documentation
+For detailed information on the project's internal workings, please refer to the following documents:
+- [Workflow](docs/workflow.md): Step-by-step processing of emails.
+- [Code Explanation](docs/code_explanation.md): Detailed breakdown of every module.
+- [Architecture](docs/architecture.md): High-level system design and component diagrams.
+- [Tech Justification](docs/tech_justification.md): Why we chose our technology stack.
+
 ## Setup
 1. Install dependencies:
    ```bash
