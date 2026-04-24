@@ -68,15 +68,34 @@ def predict(email: EmailInput):
     rf_prob = float(rf_model.predict_proba(X_rf)[0][1])
     
     # --- Step 4: Advanced Inference (Bi-LSTM) ---
-    # The LSTM model expects the raw cleaned text as input (it handles tokenization internally)
     lstm_prob = float(lstm_engine.predict([clean_text])[0][0])
     
-    # --- Step 5: Consensus Logic ---
-    # We use a weighted average or take the max for safety
-    final_prob = max(rf_prob, lstm_prob)
+    # --- Step 5: Weighted Consensus Logic (v2.2 Calibration) ---
+    # We give the LSTM 60% weight and RF 40% weight.
+    final_prob = (rf_prob * 0.4) + (lstm_prob * 0.6)
+    
+    # --- Step 6: Tiered Threat Categorization (Calibrated) ---
+    # Increased Clean threshold to 0.45 to reduce false positives on real emails.
+    if final_prob < 0.45:
+        prediction = "Clean (Ham)"
+        threat_level = "Low"
+    elif final_prob < 0.75:
+        prediction = "Suspicious (Review Required)"
+        threat_level = "Medium"
+    else:
+        prediction = "Phishing (High Risk)"
+        threat_level = "High"
+    
+    # Special Case: If models significantly disagree (e.g., 0% vs 90%), 
+    # we always mark as Suspicious even if the average is high.
+    if abs(rf_prob - lstm_prob) > 0.8:
+        prediction = "Suspicious (Model Disagreement)"
+        threat_level = "Medium"
+
     
     return {
-        "prediction": "Phishing" if final_prob > 0.5 else "Ham",
+        "prediction": prediction,
+        "threat_level": threat_level,
         "phishing_probability": final_prob,
         "model_scores": {
             "baseline_rf": rf_prob,
@@ -84,6 +103,7 @@ def predict(email: EmailInput):
         },
         "extracted_features": feats
     }
+
 
 if __name__ == "__main__":
     import uvicorn
