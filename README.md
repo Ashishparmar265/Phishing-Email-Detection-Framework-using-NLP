@@ -1,9 +1,6 @@
-# Phishing Email Detection Framework (v2.0)
+# Phishing Email Detection Framework
 
 An NLP-driven framework to detect phishing emails and extract Indicators of Compromise (IoCs) using a **Dual-Inference Consensus Engine**.
-
-## Project Evolution
-The project has evolved from a simple Random Forest baseline (V1) to a sophisticated hybrid system (V2) that combines statistical machine learning with deep learning.
 
 ## Architecture (Evolved)
 - **Data Pipeline**: Ingests real-world data from Enron and Nazario datasets with **Parallel Preprocessing**.
