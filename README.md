@@ -1,37 +1,40 @@
-# Phishing Email Detection Framework
+# Phishing Email Detection Framework (v2.0)
 
-An NLP-driven framework to detect phishing emails and extract Indicators of Compromise (IoCs).
+An NLP-driven framework to detect phishing emails and extract Indicators of Compromise (IoCs) using a **Dual-Inference Consensus Engine**.
 
-## Project Overview
-This project leverages Natural Language Processing (NLP) to distinguish between legitimate (Ham) and malicious (Phishing) emails. It uses a combination of lexical, structural, and semantic features to train high-accuracy classifiers.
+## Project Evolution
+The project has evolved from a simple Random Forest baseline (V1) to a sophisticated hybrid system (V2) that combines statistical machine learning with deep learning.
 
-## Architecture
-- **Data Pipeline**: Ingests and cleans email data from Enron and PhishTank.
-- **Feature Extraction**: Uses Regex and NLP to isolate threat intelligence.
-- **Classification Engine**: Combines traditional ML baselines with Bi-LSTM deep learning models.
-- **Deployment**: Served via FastAPI for real-time inference.
+## Architecture (Evolved)
+- **Data Pipeline**: Ingests real-world data from Enron and Nazario datasets with **Parallel Preprocessing**.
+- **Feature Extraction**: Hybrid extraction of Lexical (URLs/IPs) and Semantic (Urgency) features.
+- **Consensus Engine**: Dual-path inference using **Random Forest** and **Bi-LSTM** models for maximum accuracy.
+- **Deployment**: Served via FastAPI with a premium Glassmorphism dashboard.
 
 ## Documentation
-For detailed information on the project's internal workings, please refer to the following documents:
-- [Workflow](docs/workflow.md): Step-by-step processing of emails.
-- [Code Explanation](docs/code_explanation.md): Detailed breakdown of every module.
-- [Architecture](docs/architecture.md): High-level system design and component diagrams.
-- [Tech Justification](docs/tech_justification.md): Why we chose our technology stack.
+- [Architecture](docs/architecture.md): High-level system design evolution.
+- [Workflow](docs/workflow.md): Step-by-step parallelized processing.
+- [Code Explanation](docs/code_explanation.md): Module-level breakdown (V1 vs V2).
+- [Tech Justification](docs/tech_justification.md): Why we chose our optimized stack.
 
 ## Setup
-1. Install dependencies:
+1. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
-2. Run preprocessing:
+2. **Setup NLTK**:
    ```bash
-   python src/preprocessing/data_pipeline.py
+   python src/utils/setup_nltk.py
    ```
-3. Train the model:
+3. **Train Advanced Model (V2)**:
    ```bash
-   python src/classification/train.py
+   export PYTHONPATH=$PYTHONPATH:.
+   python src/classification/train_advanced.py
    ```
-4. Start the API:
+4. **Start the Integrated API**:
    ```bash
-   uvicorn src.api.main:app --reload
+   python src/api/main.py
    ```
+5. **Access Dashboard**:
+   Open `frontend/index.html` in your browser.
+

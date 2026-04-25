@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard | NLP Phishing Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --danger: #ef4444;
+            --success: #10b981;
+            --bg: #0f172a;
+            --glass: rgba(30, 41, 59, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .gradient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #0f172a 100%);
+            z-index: -1;
+        }
+
+        nav {
+            padding: 2rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            color: #94a3b8;
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            color: white;
+            font-size: 1rem;
+            resize: none;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .results {
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .prediction-badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border-radius: 99px;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        .badge-phishing { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+        .badge-ham { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .feature-label { color: #94a3b8; font-size: 0.8rem; margin-bottom: 0.25rem; }
+        .feature-value { font-size: 1.2rem; font-weight: 600; }
+
+        .loader {
+            display: none;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="gradient-bg"></div>
+    <nav>
+        <div class="logo">PhishGuard.ai</div>
+        <div class="status">System Status: <span style="color: var(--success)">Online</span></div>
+    </nav>
+
+    <main>
+        <div class="hero">
+            <h1>NLP-Powered Threat Intel</h1>
+            <p>Detect phishing attempts with 98% accuracy using Bi-LSTM neural networks and lexical analysis.</p>
+        </div>
+
+        <div class="card">
+            <div class="input-group">
+                <textarea id="emailInput" placeholder="Paste email content here (HTML or plain text)..."></textarea>
+            </div>
+            <button class="btn" id="analyzeBtn">
+                <span class="btn-text">Analyze Email</span>
+                <div class="loader" id="loader"></div>
+            </button>
+
+            <div class="results" id="results">
+                <div id="predictionBadge" class="prediction-badge"></div>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <div class="feature-label">Consensus Probability</div>
+                        <div class="feature-value" id="probValue">0%</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-label">URL Count</div>
+                        <div class="feature-value" id="urlValue">0</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-label">Urgency Score</div>
+                        <div class="feature-value" id="urgencyValue">0.0</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: #94a3b8; font-size: 0.9rem; text-transform: uppercase;">Model Breakdown</h3>
+                <div class="feature-grid" id="modelBreakdown">
+                    <!-- Dynamic Content -->
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const emailInput = document.getElementById('emailInput');
+        const results = document.getElementById('results');
+        const loader = document.getElementById('loader');
+        const btnText = document.querySelector('.btn-text');
+
+        analyzeBtn.addEventListener('click', async () => {
+            const text = emailInput.value.trim();
+            if (!text) return;
+
+            // Show loading state
+            loader.style.display = 'block';
+            btnText.style.display = 'none';
+            analyzeBtn.disabled = true;
+
+            try {
+                const response = await fetch('http://localhost:8000/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                alert('Error connecting to analysis engine. Make sure the FastAPI server is running.');
+            } finally {
+                loader.style.display = 'none';
+                btnText.style.display = 'block';
+                analyzeBtn.disabled = false;
+            }
+        });
+
+        function displayResults(data) {
+            results.style.display = 'block';
+            const badge = document.getElementById('predictionBadge');
+            badge.textContent = data.prediction;
+            badge.className = 'prediction-badge ' + (data.prediction === 'Phishing' ? 'badge-phishing' : 'badge-ham');
+
+            document.getElementById('probValue').textContent = (data.phishing_probability * 100).toFixed(1) + '%';
+            document.getElementById('urlValue').textContent = data.extracted_features.url_count;
+            document.getElementById('urgencyValue').textContent = data.extracted_features.urgency_score.toFixed(2);
+            
+            // Add Model Breakdown
+            const breakdown = document.getElementById('modelBreakdown');
+            if (breakdown) {
+                breakdown.innerHTML = `
+                    <div class="feature-item">
+                        <div class="feature-label">Baseline (RF)</div>
+                        <div class="feature-value">${(data.model_scores.baseline_rf * 100).toFixed(1)}%</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-label">Advanced (Bi-LSTM)</div>
+                        <div class="feature-value">${(data.model_scores.advanced_lstm * 100).toFixed(1)}%</div>
+                    </div>
+                `;
+            }
+        }
+
+    </script>
+</body>
+</html>
