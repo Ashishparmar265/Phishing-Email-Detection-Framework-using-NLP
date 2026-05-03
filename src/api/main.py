@@ -5,8 +5,6 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from src.preprocessing.data_pipeline import DataPreprocessor
 from src.extraction.feature_extractor import FeatureExtractor
-from src.classification.lstm_model import PhishingLSTM
-import tensorflow as tf
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Phishing Email Detection API")
@@ -21,23 +19,31 @@ app.add_middleware(
 )
 
 # Load models and transformers
+rf_model = None
+vectorizer = None
+lstm_engine = None
+
 try:
     # 1. Load Baseline (Random Forest)
     rf_model = joblib.load("models/rf_model.pkl")
     vectorizer = joblib.load("models/vectorizer.pkl")
-    
-    # 2. Load Advanced (Bi-LSTM)
+    print("SUCCESS: Baseline models loaded successfully.")
+except Exception as e:
+    print(f"Error loading baseline models: {e}")
+
+try:
+    # 2. Load Advanced (Bi-LSTM) - Optional if tensorflow is not installed
+    import tensorflow as tf
+    from src.classification.lstm_model import PhishingLSTM
     lstm_engine = PhishingLSTM()
     lstm_engine.model = tf.keras.models.load_model("models/phishing_lstm.h5")
     with open("models/phishing_lstm_tokenizer.pkl", "rb") as f:
         lstm_engine.tokenizer = joblib.load(f)
-        
-    print("SUCCESS: All models loaded successfully.")
+    print("SUCCESS: LSTM model loaded successfully.")
+except ImportError:
+    print("WARNING: TensorFlow not installed. LSTM model will be disabled.")
 except Exception as e:
-    print(f"Error loading models: {e}")
-    rf_model = None
-    vectorizer = None
-    lstm_engine = None
+    print(f"Error loading LSTM model: {e}")
 
 preprocessor = DataPreprocessor()
 extractor = FeatureExtractor()
@@ -47,12 +53,16 @@ class EmailInput(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"message": "Phishing Email Detection API is running", "models_loaded": lstm_engine is not None}
+    return {
+        "message": "Phishing Email Detection API is running",
+        "baseline_loaded": rf_model is not None,
+        "advanced_loaded": lstm_engine is not None
+    }
 
 @app.post("/predict")
 def predict(email: EmailInput):
-    if not rf_model or not lstm_engine:
-        raise HTTPException(status_code=500, detail="Models not loaded")
+    if not rf_model:
+        raise HTTPException(status_code=500, detail="Baseline model not loaded")
     
     # --- Step 1: Feature Extraction & Masking ---
     feats, masked_text = extractor.extract_all(email.text)
@@ -68,14 +78,22 @@ def predict(email: EmailInput):
     rf_prob = float(rf_model.predict_proba(X_rf)[0][1])
     
     # --- Step 4: Advanced Inference (Bi-LSTM) ---
-    lstm_prob = float(lstm_engine.predict([clean_text])[0][0])
+    lstm_prob = None
+    if lstm_engine:
+        try:
+            lstm_prob = float(lstm_engine.predict([clean_text])[0][0])
+        except Exception as e:
+            print(f"Error during LSTM prediction: {e}")
+
+    # --- Step 5: Weighted Consensus Logic ---
+    if lstm_prob is not None:
+        # We give the LSTM 60% weight and RF 40% weight.
+        final_prob = (rf_prob * 0.4) + (lstm_prob * 0.6)
+    else:
+        # Fallback to RF only
+        final_prob = rf_prob
     
-    # --- Step 5: Weighted Consensus Logic (v2.2 Calibration) ---
-    # We give the LSTM 60% weight and RF 40% weight.
-    final_prob = (rf_prob * 0.4) + (lstm_prob * 0.6)
-    
-    # --- Step 6: Tiered Threat Categorization (Calibrated) ---
-    # Increased Clean threshold to 0.45 to reduce false positives on real emails.
+    # --- Step 6: Tiered Threat Categorization ---
     if final_prob < 0.45:
         prediction = "Clean (Ham)"
         threat_level = "Low"
@@ -86,13 +104,11 @@ def predict(email: EmailInput):
         prediction = "Phishing (High Risk)"
         threat_level = "High"
     
-    # Special Case: If models significantly disagree (e.g., 0% vs 90%), 
-    # we always mark as Suspicious even if the average is high.
-    if abs(rf_prob - lstm_prob) > 0.8:
+    # Special Case: If models significantly disagree
+    if lstm_prob is not None and abs(rf_prob - lstm_prob) > 0.8:
         prediction = "Suspicious (Model Disagreement)"
         threat_level = "Medium"
 
-    
     return {
         "prediction": prediction,
         "threat_level": threat_level,
