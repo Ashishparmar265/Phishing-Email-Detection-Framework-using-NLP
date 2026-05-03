@@ -83,7 +83,7 @@ For the baseline model, the processed text is converted into numerical form.
 
 ## 5. Dual-Path Inference (Prediction)
 
-The system now uses two models instead of one, making predictions more reliable.
+The system uses two models working in parallel to calculate a weighted risk score.
 
 | Step | Baseline Path | Advanced Path |
 | :--- | :--- | :--- |
@@ -91,38 +91,32 @@ The system now uses two models instead of one, making predictions more reliable.
 | **Model** | **Random Forest** | **Bi-LSTM (Deep Learning)** |
 | **Strength** | Fast and explainable | Context-aware and semantic |
 
-**How it works:**
-
-- Both models process the same email at the same time  
-- Each model produces a probability score  
-- The system selects the **higher score** as the final decision  
-
-This "max probability" approach ensures a **security-first strategy**, reducing the chances of missing a phishing attempt.
+**Consensus Mechanism (V2.2):**
+- **Parallel Processing**: Both models analyze the email simultaneously.
+- **Weighted Average**: The system calculates a combined score (40% Random Forest / 60% Bi-LSTM).
+- **Safety Override**: If the models disagree by more than 80%, the system automatically flags the email as "Suspicious (Model Disagreement)" for human review.
 
 ---
 
-## 6. API Response
+## 5.5 Cybersecurity Payload Heuristic
 
-After processing, the system returns a detailed JSON response.
+To eliminate false positives caused by "Domain Shift" (where old clean data differs from modern clean data), a hard security rule is applied:
 
-**It includes:**
+**The Rule:** If an email has **0 URLs**, **0 IP Addresses**, and **0 Reply-To emails**, it cannot deliver a malicious payload. 
 
-- **Final Prediction**  
-  The result based on the consensus of both models  
+In this case, the system forcibly caps the risk at **20% (Clean)**, ensuring that safe, text-only modern emails are not accidentally blocked.
 
-- **Probability Score**  
-  A value between 0.0 and 1.0 indicating risk level  
+---
 
-- **Model Breakdown**  
-  Individual scores from:
-  - Random Forest  
-  - Bi-LSTM  
+## 6. API Response (Categorization)
 
-- **Indicators of Compromise (IoC)**  
-  Extracted details such as:
-  - URLs  
-  - IP addresses  
-  - Urgency signals  
+The final probability is mapped to one of three clear threat levels shown in the dashboard:
+
+- **Clean (Ham)**: Probability < 0.45 (Green Badge)
+- **Suspicious (Review Required)**: Probability 0.45 - 0.75 (Orange Badge)
+- **Phishing (High Risk)**: Probability > 0.75 (Red Badge)
+
+The API returns a detailed JSON response including the final prediction, threat level, and individual model scores.
 
 ---
 
@@ -131,6 +125,8 @@ After processing, the system returns a detailed JSON response.
 The workflow is designed to be:
 - **Efficient** → Parallel processing reduces latency  
 - **Accurate** → Combines traditional ML and deep learning  
+- **Robust** → Heuristic filters prevent false positives on modern text
 - **Transparent** → Provides detailed outputs for analysis  
 
 Overall, the system has evolved into a robust pipeline that can handle real-world email traffic while maintaining high detection accuracy.
+

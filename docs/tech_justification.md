@@ -22,76 +22,27 @@ NLTK gives fine-grained control over text processing tasks like tokenization and
 
 ---
 
-## 3. Modeling: The Consensus Engine
+## 3. Modeling: The Consensus Engine (V2.2)
 
-**Approach:** Hybrid (Baseline + Deep Learning)
+**Approach:** Hybrid Weighted Consensus (40% RF / 60% LSTM)
 
 **Why:**  
+The system avoids the "single point of failure" of a single model by using two distinct architectures:
+- **Random Forest**: Excellent for structured indicators (IoCs) and keyword-based detection.
+- **Bi-LSTM**: Superior for capturing semantic intent and complex linguistic patterns.
 
-Instead of relying on a single model, the system combines two different approaches:
-
-- **Random Forest → Explainability**  
-  It helps us understand *why* an email is flagged.  
-  For example: high urgency score + multiple suspicious links.
-
-- **Bi-LSTM → Semantic Understanding**  
-  It captures the intent and writing style of emails, allowing the system to detect phishing even when obvious keywords are missing.
-
-**Evolution:**  
-By combining both models into a **Consensus Engine**, the system avoids relying on a single decision-maker. This reduces the chances of missing threats and improves overall reliability.
+**Retraining (V2.2):** Both models were retrained on a perfectly balanced 10,000-email corpus of real-world Enron (Ham) and Nazario (Phishing) data to ensure the highest possible real-world accuracy.
 
 ---
 
-## 4. Performance Optimization: Joblib
+## 8. Safety Layer: Cybersecurity Payload Heuristic
 
-**Choice:** Joblib (Parallel Processing)
-
-**Why:**  
-Text preprocessing tasks like HTML cleaning and lemmatization are CPU-intensive.  
-
-In the earlier version, processing around 10,000 emails took nearly 10 minutes.  
-After introducing parallel processing with Joblib (utilizing all CPU cores), the processing time was reduced by about **80%**.
-
-This significantly improves both training speed and real-time performance.
-
----
-
-## 5. Feature Vectorization: TF-IDF vs. Embeddings
-
-The system uses different techniques depending on the model:
-
-- **TF-IDF (for Random Forest)**  
-  - Fast  
-  - Highlights important words  
-  - Works well for structured, interpretable models  
-
-- **Keras Embeddings (for Bi-LSTM)**  
-  - Captures deeper semantic relationships  
-  - Helps understand context beyond individual words  
-
-This combination ensures both efficiency and depth in analysis.
-
----
-
-## 6. Web Framework: FastAPI
-
-**Choice:** FastAPI  
+**Choice:** Hard-coded Security Logic (IoC Check)
 
 **Why:**  
-FastAPI is designed for speed and supports asynchronous processing, making it ideal for real-time applications like email scanning.  
+Machine Learning models can suffer from **"Domain Shift"**—where modern safe text (like a job application) is confused with modern phishing text because both differ from the 20-year-old training data (Enron). 
 
-It also automatically generates interactive API documentation (Swagger), which makes testing and integration much easier.
-
----
-
-## 7. Containerization: Docker
-
-**Choice:** Docker  
-
-**Why:**  
-Docker ensures that the application runs the same way everywhere—whether on a local machine or a production server.  
-
-It eliminates common issues related to dependencies (like TensorFlow versions or missing NLTK datasets), making deployment more reliable and consistent.
+By implementing a hard rule that **risk is capped at 20% if 0 URLs/IPs/Reply-Emails are found**, we ensure that text-only clean emails are never blocked. This "Hybrid AI-Security" approach is standard in industrial-grade protection systems.
 
 ---
 
@@ -99,7 +50,8 @@ It eliminates common issues related to dependencies (like TensorFlow versions or
 
 The overall tech stack is designed to balance:
 - **Performance** (parallel processing, FastAPI)  
-- **Accuracy** (hybrid modeling approach)  
-- **Reliability** (Docker, consensus-based decisions)  
+- **Accuracy** (hybrid modeling with weighted average)  
+- **Reliability** (Docker, Payload Heuristic override)  
 
-By combining traditional machine learning with deep learning and optimizing execution, the system becomes both efficient and robust in detecting phishing emails.
+By combining Deep Learning with hard Cybersecurity heuristics, the system becomes both intelligent and physically safe for real-world deployment.
+
