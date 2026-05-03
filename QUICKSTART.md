@@ -69,4 +69,4 @@ PYTHONPATH=. .venv/bin/python src/test_api.py
 ## ⚠️ Note on Deep Learning (TensorFlow)
 If TensorFlow is installed and a model is trained via `src/classification/train_advanced.py`, the API will automatically perform a weighted consensus between the Baseline and Advanced models for higher accuracy. If TensorFlow is missing, it safely falls back to the Random Forest model.
 
- gemini --resume 85d60c3f-0f23-4b48-a03e-d7ec559b2f7c
+ 
