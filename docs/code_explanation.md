@@ -41,22 +41,15 @@ This module focuses on extracting meaningful security-related features from emai
 
 ---
 
-## 3. `src/classification/train_advanced.py` (Current)
+## 3. `src/classification/train_advanced.py` & `train.py` (V2.2)
 
 **What it does:**  
-This is the upgraded training pipeline used for the advanced model. It replaces the earlier `train.py` used in the initial version.
+These modules handle the training of the Bi-LSTM and Random Forest models respectively. 
 
-**Key improvements:**
-
-- **Parallel Preprocessing**  
-  Uses `joblib.Parallel` and `delayed` to process multiple emails at the same time using all CPU cores.  
-  This significantly reduces training time.
-
-- **Progress Tracking**  
-  Uses `tqdm` to show a progress bar, making long training runs easier to monitor.
-
-**Overall role:**  
-Trains the Bi-LSTM model using real-world datasets like Enron and Nazario, which improves the model’s ability to generalize.
+**Key improvements (V2.2):**
+- **Balanced Real-World Data**: Both scripts now use a perfectly balanced 50/50 mix of Enron (Ham) and Nazario (Phishing) datasets.
+- **Parallel Preprocessing**: Both scripts utilize multi-core processing to clean and tokenize 10,000+ emails in seconds.
+- **Progress Tracking**: Uses `tqdm` for real-time monitoring of the training process.
 
 ---
 
@@ -78,36 +71,26 @@ This module defines the deep learning model used in the system.
 ## 5. `src/api/main.py` (Current)
 
 **What it does:**  
-This is the main API layer that connects the models to the outside world.
+This is the main API layer that acts as a **Dual-Inference Consensus Engine**.
 
-**What changed:**  
-Earlier, the API used only one model. Now it acts as a **Consensus Engine**.
+**Key logic (V2.2):**
 
-**How it works:**
-
-- Loads both:
-  - Random Forest model  
-  - Bi-LSTM model  
-
-- Runs both models on the same input  
-- Selects the higher risk score as the final prediction  
+- **Consensus Mechanism**: Runs both models and calculates a weighted average (40% RF / 60% LSTM).
+- **Cybersecurity Payload Heuristic**: Implements a safety override. If an email has 0 URLs, 0 IPs, and 0 Emails to reply to, it forcibly caps the risk at 20%, preventing "Domain Shift" false positives.
+- **Safety Disagreement**: Flags emails where models disagree by > 80% as "Suspicious".
 
 **Technology used:**  
-Built with `FastAPI`, which allows:
-- High performance  
-- Asynchronous request handling  
-- Scalability  
+Built with `FastAPI`, providing high performance and asynchronous request handling.
 
 ---
 
-## 6. `src/utils/data_loader.py` (Development)
+## 6. `src/utils/data_loader.py` (Legacy)
 
 **What it does:**  
-This module was used during early development to generate synthetic data for testing and validating the pipeline.
+Used during early development to generate synthetic data.
 
 **Note:**  
-It was mainly useful in earlier version of the system.
-The current system relies on real datasets like Enron and Nazario for better accuracy.
+The current production system has moved beyond this and relies entirely on the real-world Enron and Nazario corpora for superior accuracy.
 
 ---
 
@@ -129,10 +112,11 @@ This helps avoid setup issues and ensures the environment is ready to run the pr
 
 ## Final Note
 
-Overall, the codebase is designed with a clear separation of responsibilities:
-- Preprocessing handles raw input  
-- Feature extraction adds security-specific insights  
-- Models perform classification  
-- The API ties everything together  
+The codebase is organized into modular layers:
+- **Preprocessing** cleans raw text.
+- **Feature Extraction** identifies security signals.
+- **Classification** predicts threat probability.
+- **API Engine** balances AI insights with hard security heuristics.
 
-The transition from a simple pipeline to a more optimized and parallelized system has significantly improved both performance and accuracy.
+This combination of Deep Learning and Cybersecurity rules ensures the system is both intelligent and reliable.
+

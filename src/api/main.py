@@ -35,7 +35,8 @@ try:
     # 2. Load Advanced (Bi-LSTM) - Optional if tensorflow is not installed
     import tensorflow as tf
     from src.classification.lstm_model import PhishingLSTM
-    lstm_engine = PhishingLSTM()
+    # Initialize with max_len=150 to match the training script!
+    lstm_engine = PhishingLSTM(max_len=150)
     lstm_engine.model = tf.keras.models.load_model("models/phishing_lstm.h5")
     with open("models/phishing_lstm_tokenizer.pkl", "rb") as f:
         lstm_engine.tokenizer = joblib.load(f)
@@ -85,15 +86,24 @@ def predict(email: EmailInput):
         except Exception as e:
             print(f"Error during LSTM prediction: {e}")
 
-    # --- Step 5: Weighted Consensus Logic ---
+    # --- Step 5: Weighted Consensus Logic (v2.2 Calibration) ---
     if lstm_prob is not None:
         # We give the LSTM 60% weight and RF 40% weight.
         final_prob = (rf_prob * 0.4) + (lstm_prob * 0.6)
     else:
         # Fallback to RF only
         final_prob = rf_prob
+        
+    # --- Step 5.5: Cybersecurity Payload Heuristic ---
+    # Machine Learning models suffer from 'domain shift' when trained on old data (Enron).
+    # This heuristic acts as a hard security rule: If an email has NO links, NO IPs, 
+    # NO email addresses to reply to, and NO urgency, it cannot deliver a phishing payload.
+    total_iocs = feats['url_count'] + feats['ip_count'] + feats['email_count']
+    if total_iocs == 0 and feats['urgency_score'] < 0.2:
+        final_prob = min(final_prob, 0.20) # Cap risk at 20% (Clean)
     
-    # --- Step 6: Tiered Threat Categorization ---
+    # --- Step 6: Tiered Threat Categorization (Calibrated) ---
+    # Increased Clean threshold to 0.45 to reduce false positives on real emails.
     if final_prob < 0.45:
         prediction = "Clean (Ham)"
         threat_level = "Low"
@@ -104,8 +114,8 @@ def predict(email: EmailInput):
         prediction = "Phishing (High Risk)"
         threat_level = "High"
     
-    # Special Case: If models significantly disagree
-    if lstm_prob is not None and abs(rf_prob - lstm_prob) > 0.8:
+    # Special Case: If models significantly disagree AND there is a payload present
+    if lstm_prob is not None and abs(rf_prob - lstm_prob) > 0.8 and total_iocs > 0:
         prediction = "Suspicious (Model Disagreement)"
         threat_level = "Medium"
 

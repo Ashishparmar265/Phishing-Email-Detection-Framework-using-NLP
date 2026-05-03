@@ -140,6 +140,28 @@ graph TD
     Feat --> Concat
     Concat --> ModelRF[V1: Random Forest]
     Clean --> ModelLSTM[V2: Bi-LSTM Engine]
-    ModelRF --> Consensus[Consensus Logic: MAX Probability]
+    ModelRF --> Consensus[Consensus Logic: Weighted Average]
     ModelLSTM --> Consensus
-    Consensus --> Output[JSON Response: Dual-Score Breakdown]
+    Consensus --> Heuristic[Cybersecurity Payload Heuristic]
+    Heuristic --> Output[JSON Response: Dual-Score Breakdown + Tiered Label]
+```
+
+---
+
+## 6. Phase 3: The Cybersecurity Payload Heuristic (V2.2)
+
+After deploying the dual-inference consensus engine, we identified a critical machine learning flaw: **Domain Shift**. 
+- The models were trained on early 2000s energy corporate emails (Enron) and modern phishing emails (Nazario). 
+- When confronted with a *modern* safe email (like an Amazon job application), the NLP models flagged it as phishing simply because it used modern tech vocabulary that wasn't present in the Enron dataset.
+
+To solve this fundamentally, we introduced the **Cybersecurity Payload Heuristic** as an absolute override mechanism in the API layer.
+
+### How it Works:
+A phishing attack *must* have a payload mechanism to be dangerous.
+If the `FeatureExtractor` determines that the email contains:
+- `0` URLs (Links)
+- `0` IP Addresses
+- `0` Email addresses to reply to
+- Low Urgency Score (< 0.2)
+
+...then the email is physically incapable of delivering an attack. In this scenario, the API **overrides the NLP consensus** and forcibly caps the phishing probability at **20% (Clean)**. This elegantly marries theoretical Machine Learning with practical Cybersecurity engineering.

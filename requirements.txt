@@ -11,3 +11,5 @@ lxml
 matplotlib
 seaborn
 pytest
+joblib
+tqdm

@@ -34,14 +34,24 @@ def train_advanced_model():
     enron_df = enron_df[['body', 'label']]
     nazario_df = nazario_df[['body', 'label']]
     
-    # Ensure balance (Take 5000 from each or available min)
-    min_samples = min(len(enron_df), len(nazario_df), 5000)
-    print(f"Sampling {min_samples} emails from each dataset for a balanced set of {min_samples*2} total.")
+    # Combine both datasets to pool all available real-world data
+    df_combined = pd.concat([enron_df, nazario_df]).reset_index(drop=True)
     
-    enron_sample = enron_df.sample(min_samples, random_state=42)
-    nazario_sample = nazario_df.sample(min_samples, random_state=42)
+    # Separate into Ham (0) and Phishing (1) to fix the bias issue
+    ham_df = df_combined[df_combined['label'] == 0]
+    phish_df = df_combined[df_combined['label'] == 1]
     
-    df = pd.concat([enron_sample, nazario_sample]).reset_index(drop=True)
+    # Ensure perfect balance (take min available or 5000)
+    min_samples = min(len(ham_df), len(phish_df), 5000)
+    print(f"Total available - Ham: {len(ham_df)}, Phishing: {len(phish_df)}")
+    print(f"Sampling exactly {min_samples} of each for a perfectly balanced set of {min_samples*2} total.")
+    
+    ham_sample = ham_df.sample(min_samples, random_state=42)
+    phish_sample = phish_df.sample(min_samples, random_state=42)
+    
+    # Combine and shuffle
+    df = pd.concat([ham_sample, phish_sample]).sample(frac=1, random_state=42).reset_index(drop=True)
+
     
     preprocessor = DataPreprocessor()
     extractor = FeatureExtractor()

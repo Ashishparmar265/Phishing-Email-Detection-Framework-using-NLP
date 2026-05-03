@@ -154,6 +154,7 @@
 
         .badge-phishing { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
         .badge-ham { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+        .badge-suspicious { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
 
         .feature-grid {
             display: grid;
@@ -273,7 +274,15 @@
             results.style.display = 'block';
             const badge = document.getElementById('predictionBadge');
             badge.textContent = data.prediction;
-            badge.className = 'prediction-badge ' + (data.prediction === 'Phishing' ? 'badge-phishing' : 'badge-ham');
+            
+            // Apply color coding based on threat level
+            if (data.threat_level === 'High') {
+                badge.className = 'prediction-badge badge-phishing';
+            } else if (data.threat_level === 'Medium') {
+                badge.className = 'prediction-badge badge-suspicious';
+            } else {
+                badge.className = 'prediction-badge badge-ham';
+            }
 
             document.getElementById('probValue').textContent = (data.phishing_probability * 100).toFixed(1) + '%';
             document.getElementById('urlValue').textContent = data.extracted_features.url_count;
