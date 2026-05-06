@@ -22,24 +22,39 @@ def process_single_email(text, extractor, preprocessor):
 
 def train_baseline_model():
     print("\n--- Phase 1-3: Baseline Model Training (Retrain) ---")
-    print("Loading synthetic dataset...")
     
     try:
-        df = pd.read_csv("data/phishing_emails.csv")
-    except FileNotFoundError as e:
-        print(f"Error: Dataset not found. {e}")
+        if os.path.exists("data/phishing_email_large.csv"):
+            print("Using large compilation dataset (63k+ emails).")
+            df_combined = pd.read_csv("data/phishing_email_large.csv")
+            # The columns are 'tipo' (label) and 'mensaje' (body)
+            df_combined = df_combined.rename(columns={'tipo': 'label', 'mensaje': 'body'})
+            # Map 'ham' to 0 and 'phishing' to 1
+            df_combined['label'] = df_combined['label'].map({'ham': 0, 'phishing': 1})
+            # Drop any NaNs
+            df_combined = df_combined.dropna(subset=['body', 'label'])
+        elif os.path.exists("data/phishing_emails.csv"):
+            print("Using phishing_emails.csv.")
+            df_combined = pd.read_csv("data/phishing_emails.csv")
+            if 'body_text' in df_combined.columns:
+                df_combined = df_combined.rename(columns={'body_text': 'body'})
+            df_combined = df_combined[['body', 'label']]
+        else:
+            print("Error: No datasets found in data/ directory.")
+            return
+    except Exception as e:
+        print(f"Error loading datasets: {e}")
         return
-
-    if 'body_text' in df.columns:
-        df = df.rename(columns={'body_text': 'body'})
     
     # Separate into Ham (0) and Phishing (1) to fix the bias issue
-    ham_df = df[df['label'] == 0]
-    phish_df = df[df['label'] == 1]
+    ham_df = df_combined[df_combined['label'] == 0]
+    phish_df = df_combined[df_combined['label'] == 1]
     
-    min_samples = min(len(ham_df), len(phish_df), 5000)
+    # Increase samples for baseline as well
+    max_per_class = 15000
+    min_samples = min(len(ham_df), len(phish_df), max_per_class)
     print(f"Total available - Ham: {len(ham_df)}, Phishing: {len(phish_df)}")
-    print(f"Sampling exactly {min_samples} of each for a perfectly balanced set of {min_samples*2} total.")
+    print(f"Sampling exactly {min_samples} of each for a balanced set of {min_samples*2} total.")
     
     ham_sample = ham_df.sample(min_samples, random_state=42)
     phish_sample = phish_df.sample(min_samples, random_state=42)

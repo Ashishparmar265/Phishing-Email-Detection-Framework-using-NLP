@@ -1,115 +1,135 @@
-/* styles.css */
+/* styles.css - Modern Minimalist Developer Aesthetic */
+:root {
+    --bg-primary: #0A0A0A;
+    --bg-secondary: #121212;
+    --accent: #007AFF;
+    --text-main: #E0E0E0;
+    --text-dim: #888888;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+}
+
 body {
-    width: 350px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 380px;
+    font-family: 'Inter', -apple-system, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #0f172a;
-    color: #f8fafc;
+    background-color: var(--bg-primary);
+    color: var(--text-main);
+    -webkit-font-smoothing: antialiased;
 }
 
 .container {
-    padding: 16px;
+    padding: 24px;
 }
 
 header {
-    text-align: center;
-    border-bottom: 1px solid #1e293b;
-    margin-bottom: 16px;
-    padding-bottom: 8px;
+    margin-bottom: 32px;
+}
+
+.header-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+.brand-marker {
+    width: 3px;
+    height: 14px;
+    background: var(--accent);
 }
 
 header h1 {
-    font-size: 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
     margin: 0;
-    background: linear-gradient(to right, #6366f1, #a855f7);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
 }
 
 header p {
-    font-size: 0.8rem;
-    color: #94a3b8;
-    margin: 4px 0 0 0;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .preview-area {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 20px;
 }
 
 .field label {
     display: block;
-    font-size: 0.7rem;
-    font-weight: bold;
-    color: #6366f1;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-dim);
     text-transform: uppercase;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
 }
 
 .value {
-    background: rgba(30, 41, 59, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    padding: 8px;
-    font-size: 0.85rem;
-    max-height: 100px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 2px;
+    padding: 12px;
+    font-size: 0.8rem;
+    max-height: 80px;
     overflow-y: auto;
-    word-wrap: break-word;
+    color: var(--text-main);
+    line-height: 1.5;
 }
 
 .body-preview {
     max-height: 120px;
-    font-size: 0.8rem;
-    color: #cbd5e1;
-    white-space: pre-wrap;
-}
-
-.url-list {
-    max-height: 80px;
-    overflow-y: auto;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 0.75rem;
-}
-
-.url-item {
-    margin-bottom: 4px;
-    color: #38bdf8;
-    text-decoration: none;
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: var(--text-main);
+    opacity: 0.9;
 }
 
 .actions {
     display: flex;
-    gap: 8px;
-    margin-top: 16px;
+    gap: 12px;
+    margin-top: 32px;
 }
 
 .btn {
     flex: 1;
-    padding: 10px;
-    border-radius: 6px;
+    padding: 14px;
+    border-radius: 2px;
     border: none;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     cursor: pointer;
-    transition: transform 0.1s;
-}
-
-.btn:active {
-    transform: scale(0.98);
+    transition: all 0.2s ease;
 }
 
 .btn.primary {
-    background: linear-gradient(to right, #6366f1, #a855f7);
+    background: #00f050db;
     color: white;
+    opacity: 1;
+    font-weight: 900;
+}
+
+.btn.primary:hover {
+    transform: translateY(-2px);
 }
 
 .btn.secondary {
-    background: #334155;
-    color: white;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border-subtle);
+}
+
+.btn.secondary:hover {
+    color: #d3d3d3;
+    border-color: var(--text-dim);
 }
 
 .hidden {
@@ -117,15 +137,23 @@ header p {
 }
 
 .error-msg {
-    color: #ef4444;
+    color: #FF453A;
     text-align: center;
-    padding: 20px;
-    font-size: 0.9rem;
+    padding: 24px;
+    background: rgba(255, 69, 58, 0.05);
+    border: 1px solid rgba(255, 69, 58, 0.15);
+    border-radius: 2px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 footer {
     text-align: center;
-    font-size: 0.65rem;
-    color: #64748b;
-    margin-top: 16px;
+    font-size: 0.55rem;
+    color: var(--text-dim);
+    margin-top: 32px;
+    letter-spacing: 2px;
+    font-weight: 500;
+    opacity: 0.5;
 }

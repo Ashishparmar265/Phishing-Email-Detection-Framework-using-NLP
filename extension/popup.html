@@ -1,42 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PhishGuard Extractor</title>
+    <title>PhishGuard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>PhishGuard AI</h1>
-            <p>Gmail Phishing Detector</p>
+            <div class="header-main">
+                <div class="logo-dot"></div>
+                <h1 style="color: #00f050;">PhishGuard</h1>
+            </div>
+            <p>Neural Threat Extraction</p>
         </header>
 
         <div id="not-gmail" class="hidden error-msg">
-            Please open a Gmail message to use this extension.
+            <div class="icon">⚠️</div>
+            <p>Please open a Gmail message to initiate scan.</p>
         </div>
 
         <div id="content-preview" class="preview-area">
             <div class="field">
-                <label>Subject:</label>
+                <label>Target Subject</label>
                 <div id="subject" class="value">Loading...</div>
             </div>
             <div class="field">
-                <label>Sender:</label>
+                <label>Origin Sender</label>
                 <div id="sender" class="value">Loading...</div>
             </div>
             <div class="field">
-                <label>Body Preview:</label>
+                <label>Payload Preview</label>
                 <div id="body" class="value body-preview">Loading...</div>
             </div>
         </div>
 
         <div class="actions">
-            <button id="analyze-btn" class="btn primary">Analyze Email</button>
-            <button id="clear-btn" class="btn secondary">Clear</button>
+            <button id="analyze-btn" class="btn primary">Start Analysis</button>
+            <button id="clear-btn" class="btn secondary">Reset</button>
         </div>
 
         <footer>
-            Integrated with NLP PhishGuard.ai
+            POWERED BY PHISHGUARD.AI v2.5
         </footer>
     </div>
     <script src="popup.js"></script>

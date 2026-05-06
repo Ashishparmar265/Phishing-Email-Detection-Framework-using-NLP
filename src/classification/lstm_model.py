@@ -6,6 +6,9 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 import numpy as np
 import joblib
 
+from tensorflow.keras.layers import Embedding, LSTM, Dense, Bidirectional, Dropout, BatchNormalization
+from tensorflow.keras.callbacks import EarlyStopping
+
 class PhishingLSTM:
     def __init__(self, max_words=10000, max_len=100, embedding_dim=128):
         self.max_words = max_words
@@ -18,21 +21,41 @@ class PhishingLSTM:
         model = Sequential([
             Embedding(self.max_words, self.embedding_dim, input_length=self.max_len),
             Bidirectional(LSTM(64, return_sequences=True)),
+            Dropout(0.3),
+            BatchNormalization(),
             Bidirectional(LSTM(32)),
+            Dropout(0.3),
+            BatchNormalization(),
             Dense(64, activation='relu'),
             Dropout(0.5),
             Dense(1, activation='sigmoid')
         ])
-        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+        # Using a slightly lower learning rate for better calibration
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
+        model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
         return model
 
-    def fit(self, texts, labels, epochs=5, batch_size=32):
+    def fit(self, texts, labels, epochs=10, batch_size=32, validation_split=0.2):
         self.tokenizer.fit_on_texts(texts)
         sequences = self.tokenizer.texts_to_sequences(texts)
         X = pad_sequences(sequences, maxlen=self.max_len)
         y = np.array(labels)
         
-        self.model.fit(X, y, epochs=epochs, batch_size=batch_size, validation_split=0.2)
+        # Early stopping to prevent overfitting
+        early_stop = EarlyStopping(
+            monitor='val_loss', 
+            patience=3, 
+            restore_best_weights=True,
+            verbose=1
+        )
+        
+        return self.model.fit(
+            X, y, 
+            epochs=epochs, 
+            batch_size=batch_size, 
+            validation_split=validation_split,
+            callbacks=[early_stop]
+        )
 
     def predict(self, texts):
         sequences = self.tokenizer.texts_to_sequences(texts)
